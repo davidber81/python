@@ -1,3 +1,6 @@
-variable_1 = 'Hello,'
 def function1():
-    print('World!')
+    print('Hello, world')
+
+def function2():
+    print('Hello, world')
+
