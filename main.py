@@ -1,3 +1,6 @@
-import module1
-module1.function1()
-module1.function2()
+def test_function():
+    def inner_function():
+        print("Я в области видимости функции test_function")
+    inner_function()
+
+test_function()

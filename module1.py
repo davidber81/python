@@ -1,6 +1,6 @@
-def function1():
-    print('Hello, world')
+def test_function():
+    def inner_function():
+        print("Я в области видимости функции test_function")
+    inner_function()
 
-def function2():
-    print('Hello, world')
-
+test_function()
