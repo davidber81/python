@@ -1,4 +1,3 @@
-from termcolor import cprint
 
 class Road:
     def __init__(self, start, end, distance):
@@ -8,7 +7,7 @@ class Road:
 
 
 class Warehouse:
-    def __init__(self, name, content=0):
+    def __init__(self, name, content=3):
         self.name = name
         self.content = content
         self.road_out = None
@@ -18,19 +17,20 @@ class Warehouse:
     def __str__(self):
         return 'Склад {} груза {}'.format(self.name, self.content)
     def set_road_out(self, road):
-        self.set_road_out = road
+        self.set_road_out_1 = road
     def truck_arrived(self, truck):
         self.queue_in.append(truck)
         print('{} прибыл грузовик {}'.format(self.name, truck))
 
     def get_next_truck(self):
-        if self.queue_in:
-            truck = self.queue_in.pop()
+        if self.queue_in and self.queue_out != []:
+            truck = self.queue_out.pop()
             return truck
+        return 'Нет очереди'
 
     def truck_ready(self, truck):
         self.queue_out.append(truck)
-        print('{} грузовик готов {}'.format(self.name, self.truck))
+        print('{} грузовик готов {}'.format(self.name, truck))
     def act(self):
         while self.queue_out:
             truck = self.queue_out.pop()
@@ -77,7 +77,7 @@ class Truck(Vehicle):
             print('{} едет по дороге, осталось'.format(self.model, self.distance_to_target))
         else:
             self.place = self.place.end
-            self.place.truck_arrived(self)
+            self.place.truck_arrived()
             print('{} доехал'.format(self.model))
 
 
@@ -109,16 +109,19 @@ class AutoLoader(Vehicle):
         if super().act():
             if self.truck is None:
                 self.truck = self.warehouse.get_next_truck()
-                print('{} взял в работу {}'.format(self.model, truck))
+                print('{} взял в работу {}'.format(self.model, self.truck))
             elif self.role == 'loader':
                 self.load()
             else:
                 self.unload()
             if self.truck is None:
-                Truck.dead_time += 0
+                Truck.dead_time += 1
 
 
     def load(self):
+        if not isinstance(self.truck, Truck):
+            print('Мы никого не загрузили, потому что были пусты')
+            return
         if self.warehouse.content == 0:
             print('{} на складе ничего нет!'.format(self.model))
             if self.truck:
@@ -131,7 +134,7 @@ class AutoLoader(Vehicle):
             cargo = self.bucket_capacity
         else:
             cargo = truck_cargo_rest
-        if self.warehouse.content <= cargo:
+        if self.warehouse.content < cargo:
             cargo = self.warehouse.content
             self.warehouse.content -= cargo
             self.truck.cargo += cargo
@@ -148,47 +151,47 @@ class AutoLoader(Vehicle):
         else:
             self.warehouse.content -= self.truck.cargo
             self.truck.cargo += self.truck.cargo
-        print('{} разгружал {}'.format(self.model, self.truck))
+        print('{} выгружал {}'.format(self.model, self.truck))
         if self.truck.cargo == 0:
             self.warehouse.truck_ready(self.truck)
             self.truck = None
 
 TOTAL_CARGO = 100000
 
-moscow = Warehouse(name='Москва', content=TOTAL_CARGO)
-piter = Warehouse(name='Питер', content=0)
+msc = Warehouse(name='Москва', content=TOTAL_CARGO)
+spb = Warehouse(name='Питер', content=3)
 
-moscow_piter = Road(start=moscow, end=piter, distance=715)
-piter_moscow = Road(start=piter, end=moscow, distance=780)
+msc_spb = Road(start=msc, end=spb, distance=715)
+spb_msc = Road(start=spb, end=msc, distance=780)
 
-moscow.set_road_out(moscow_piter)
-piter.set_road_out(piter_moscow)
+msc.set_road_out(msc_spb)
+spb.set_road_out(spb_msc)
 
-loader_1 = AutoLoader(model='Bobcat', bucket_capacity=1000, warehouse=moscow, role='loader')
-loader_2 = AutoLoader(model='Lonking', bucket_capacity=500, warehouse=piter, role='unloader')
+loader1 = AutoLoader(model='Bobcat', bucket_capacity=1000, warehouse=msc, role='loader')
+loader2 = AutoLoader(model='Lonking', bucket_capacity=500, warehouse=spb, role='unloader')
 
 trucks = []
-for number in range(5):
+for number in range(2):
     truck = Truck(model='КАМАЗ # {}'.format(number), body_space=5000)
-    moscow.truck_arrived(truck)
+    msc.truck_arrived(truck)
     trucks.append(truck)
 
 hour = 0
-while piter.content < TOTAL_CARGO:
+while spb.content < TOTAL_CARGO:
     hour += 1
     print('---------- Час {} ----------'.format(hour))
     for truck in trucks:
         truck.act()
-    loader_1.act()
-    loader_2.act()
-    moscow.act()
-    piter.act()
+    loader1.act()
+    loader2.act()
+    msc.act()
+    spb.act()
     for truck in trucks:
         print(truck)
-    print(loader_1)
-    print(loader_2)
-    print(moscow)
-    print(piter)
+    print(loader1)
+    print(loader2)
+    print(msc)
+    print(spb)
 
 
 print('всего затраченно топлива {}'.format(Vehicle.total_fuel))
