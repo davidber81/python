@@ -1,9 +1,9 @@
 class Vehicle:
     """ Транспортное средство """
-
-    def __init__(self, model, vehicle_type):
+    vehicle_type = 'z99'
+    def __init__(self, model):
         self.model = model
-        self.vehicle_type = vehicle_type
+
     def horse_powers(self):
         return 300
 
@@ -26,11 +26,11 @@ class Nissan(Vehicle, Car):
        return 120
 
 " Вывод "
-my_car = Nissan('model', 'z51')
+my_car = Nissan('model')
 vehicle = my_car.vehicle_type
 price = my_car.price
 horse_powers = my_car.horse_powers()
 print(my_car)
-print(vehicle)
-print(price)
-print(horse_powers)
+print('марка', vehicle)
+print('цена', price)
+print('мощность', horse_powers)
