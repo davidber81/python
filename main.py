@@ -1,23 +1,43 @@
-class InvalidDataException(Exception):
-    pass
+import threading
 
-class ProcessingException(Exception):
-    pass
+class BankAccount:
+    def __init__(self, account, amount):
+        self.account = account
+        self.amount = amount
+        self.lock = threading.Lock()
 
-def func(e):
-    if e == 1:
-        raise InvalidDataException()
-    elif e == 2:
-        raise ProcessingException()
-    else:
-        print('Все супер!')
+    def deposit(self, amount):
+        with self.lock:
+            print(f"Внесли сумму {amount} на счету {account.amount}")
+            self.amount += amount
 
-def func2(case):
-    try:
-        func(case)
-    except ProcessingException as e:
-        print(f'Внимание: {e}')
-    except InvalidDataException as e:
-        print(f'Ошибка: {e}')
+    def withdraw(self, amount):
+        with self.lock:
+            if self.amount >= amount:
+                print(f"Сняли сумму {amount} на счету {account.amount} ")
+                self.amount -= amount
+            else:
+                print("Not enough funds to withdraw")
 
-func2(case=1)i.total_fuel))
+def deposit_task(account, amount):
+    for _ in range(5):
+        account.deposit(amount)
+
+def withdraw_task(account, amount):
+    for _ in range(5):
+        account.withdraw(amount)
+
+account = BankAccount('100', 500)
+
+print("Начальный баланс счета", account.amount)
+
+deposit_thread = threading.Thread(target=deposit_task, args=(account, 100))
+withdraw_thread = threading.Thread(target=withdraw_task, args=(account, 150))
+
+deposit_thread.start()
+withdraw_thread.start()
+
+deposit_thread.join()
+withdraw_thread.join()
+
+print("Итоговый баланс счета", account.amount)
