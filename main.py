@@ -1,43 +1,57 @@
 import threading
+import time
+from queue import Queue
 
-class BankAccount:
-    def __init__(self, account, amount):
-        self.account = account
-        self.amount = amount
-        self.lock = threading.Lock()
+class Table:
+    def __init__(self, number):
+        self.number = number
+        self.is_busy = False
+class Customer(threading.Thread):
+    def __init__(self, number, table):
+        super().__init__()
+        self.number = number
+        self.table = table
 
-    def deposit(self, amount):
-        with self.lock:
-            print(f"Внесли сумму {amount} на счету {account.amount}")
-            self.amount += amount
+    def run(self):
+        print(f"Посетитель номер {self.number} прибыл")
+        while self.table.is_busy:
+            time.sleep(1)
+        self.table.is_busy = True
+        print(f"Посетитель номер {self.number} сел за стол {self.table.number} (начало обслуживания)")
+        time.sleep(5)
+        print(f"Посетитель номер {self.number} покушал и ушёл (конец обслуживания)")
+        self.table.is_busy = False
+class Cafe:
+    def __init__(self, tables):
+        self.tables = tables
+        self.queue = Queue()
 
-    def withdraw(self, amount):
-        with self.lock:
-            if self.amount >= amount:
-                print(f"Сняли сумму {amount} на счету {account.amount} ")
-                self.amount -= amount
+    def customer_arrival(self):
+        customer_number = 1
+        while customer_number <= 20:
+            time.sleep(1)
+            free_table = None
+            for table in self.tables:
+                if not table.is_busy:
+                    free_table = table
+                    break
+            if free_table:
+                customer_thread = Customer(customer_number, free_table)
+                customer_thread.start()
+                customer_number += 1
             else:
-                print("Not enough funds to withdraw")
+                print(f"Посетитель номер {customer_number} ожидает свободный стол (помещение в очередь)")
+                self.queue.put(customer_number)
+                customer_number += 1
 
-def deposit_task(account, amount):
-    for _ in range(5):
-        account.deposit(amount)
+table1 = Table(1)
+table2 = Table(2)
+table3 = Table(3)
+tables = [table1, table2, table3]
 
-def withdraw_task(account, amount):
-    for _ in range(5):
-        account.withdraw(amount)
+cafe = Cafe(tables)
 
-account = BankAccount('100', 500)
+customer_arrival_thread = threading.Thread(target=cafe.customer_arrival)
+customer_arrival_thread.start()
 
-print("Начальный баланс счета", account.amount)
-
-deposit_thread = threading.Thread(target=deposit_task, args=(account, 100))
-withdraw_thread = threading.Thread(target=withdraw_task, args=(account, 150))
-
-deposit_thread.start()
-withdraw_thread.start()
-
-deposit_thread.join()
-withdraw_thread.join()
-
-print("Итоговый баланс счета", account.amount)
+customer_arrival_thread.join()
