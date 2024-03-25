@@ -1,57 +1,54 @@
-import threading
-import time
-from queue import Queue
 
-class Table:
-    def __init__(self, number):
-        self.number = number
-        self.is_busy = False
-class Customer(threading.Thread):
-    def __init__(self, number, table):
-        super().__init__()
-        self.number = number
-        self.table = table
+import requests
+response = requests.get(
+    'https://api.github.com/search/repositories',
+    params={'q': 'requests+language:python'},
+)
 
-    def run(self):
-        print(f"Посетитель номер {self.number} прибыл")
-        while self.table.is_busy:
-            time.sleep(1)
-        self.table.is_busy = True
-        print(f"Посетитель номер {self.number} сел за стол {self.table.number} (начало обслуживания)")
-        time.sleep(5)
-        print(f"Посетитель номер {self.number} покушал и ушёл (конец обслуживания)")
-        self.table.is_busy = False
-class Cafe:
-    def __init__(self, tables):
-        self.tables = tables
-        self.queue = Queue()
+json_response = response.json()
+repository = json_response['items'][0]
+print(f'Repository name: {repository["name"]}')
+print(f'Repository description: {repository["description"]}')
 
-    def customer_arrival(self):
-        customer_number = 1
-        while customer_number <= 20:
-            time.sleep(1)
-            free_table = None
-            for table in self.tables:
-                if not table.is_busy:
-                    free_table = table
-                    break
-            if free_table:
-                customer_thread = Customer(customer_number, free_table)
-                customer_thread.start()
-                customer_number += 1
-            else:
-                print(f"Посетитель номер {customer_number} ожидает свободный стол (помещение в очередь)")
-                self.queue.put(customer_number)
-                customer_number += 1
+import pandas as pd
+df = pd.DataFrame([[1,'Bob', 'Builder'],
+                  [2,'Sally', 'Baker'],
+                  [3,'Scott', 'Candle Stick Maker']],
+columns=['id','name', 'occupation'])
+print(df)
+df = pd.read_csv('WHR_2019.csv')
 
-table1 = Table(1)
-table2 = Table(2)
-table3 = Table(3)
-tables = [table1, table2, table3]
+import numpy as np
 
-cafe = Cafe(tables)
+c = np.array([1, 2, 3])
+print(c)
+d = np.array([[1, 2], [3, 4]])
+print(np.cos(d))
+a = np.ones((2, 3))
+print(a)
+b = np.full((3, 2), 2)
+print(b)
+print(np.matmul(a, b))
 
-customer_arrival_thread = threading.Thread(target=cafe.customer_arrival)
-customer_arrival_thread.start()
+import matplotlib.pyplot as plt
+labels = ['2017', '2018', '2019', '2020', '2021']
+android_users = [85, 80, 75, 69.2, 91]
+ios_users = [15.0, 20.0, 25.0, 30.8, 9.0]
+width = 0.35
+fig, ax = plt.subplots()
+ax.bar(labels, android_users, width, label='Android')
+ax.bar(labels, ios_users, width, bottom=android_users,
+      label='iOS')
+ax.set_ylabel('Соотношение, в %')
+ax.set_title('Распределение устройств на Android и iOS')
+ax.legend(loc='lower left', title='Устройства')
+plt.show()
 
-customer_arrival_thread.join()
+from PIL import Image, ImageDraw
+image = Image.open('image-pillow.png')
+image.show()
+
+img = Image.new('RGBA', (200, 200), 'white')
+idraw = ImageDraw.Draw(img)
+idraw.rectangle((10, 10, 100, 100), fill='blue')
+img.show()
